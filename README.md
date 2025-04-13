@@ -35,6 +35,21 @@ A nostalgic Windows 95-style paint application that doubles as an interactive po
    open index.html
    ```
 
+## Deployment 🌐
+
+This project is set up for automatic deployment to GitHub Pages. The site will be available at:
+`https://yourusername.github.io/paint-portfolio/`
+
+### Manual Deployment
+1. Push your changes to the main branch
+2. GitHub Actions will automatically deploy to GitHub Pages
+3. Wait a few minutes for the deployment to complete
+
+### Custom Domain
+1. Add your domain to the `CNAME` file
+2. Configure DNS settings with your domain provider
+3. Update the `robots.txt` and `sitemap.xml` with your custom domain
+
 ## Usage Guide 📝
 
 ### Drawing Tools
