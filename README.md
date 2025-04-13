@@ -2,7 +2,7 @@
 
 A nostalgic Windows 95-style paint application that doubles as an interactive portfolio. This project combines the classic look and feel of Microsoft Paint with modern web technologies to create an engaging and memorable portfolio experience.
 
-![Paint Portfolio Demo](paintportfolio-demo.png)
+![Paint Portfolio Demo](PaintPortfolio-demo.png)
 
 ## Features ✨
 
