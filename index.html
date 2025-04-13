@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>untitled - Paint</title>
+  <style>
+    /* GLOBAL RESET
+     * Resets default browser styles and sets consistent box-sizing
+     * Ensures consistent layout behavior across different browsers
+     */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Tahoma", sans-serif;
+    }
+    
+    /* MAIN BODY STYLING
+     * Creates a teal background with centered content
+     * Uses flexbox for perfect centering of the paint window
+     */
+    body {
+      background-color: #008080;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    /* MAIN WINDOW CONTAINER
+     * Creates the classic Windows 95-style window frame
+     * Uses box-shadow for the 3D effect typical of Windows 95
+     */
+    .paint-window {
+      width: 900px;
+      background-color: #C0C0C0;
+      border: 2px solid #000;
+      box-shadow: 4px 4px 0 #000;
+    }
+
+    /* TITLE BAR STYLING
+     * Creates the classic Windows 95 title bar with dark blue background
+     * Includes window controls (minimize, maximize, close)
+     */
+    .title-bar {
+      background-color: #000080;
+      color: #FFF;
+      display: flex;
+      align-items: center;
+      height: 22px;
+      padding: 0 4px;
+    }
+    .title-bar .title {
+      flex-grow: 1;
+      font-size: 14px;
+      line-height: 22px;
+      text-shadow: 1px 1px #000;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+    .title-bar .window-controls {
+      display: flex;
+      gap: 4px;
+    }
+    .title-bar .window-controls div {
+      width: 18px;
+      height: 14px;
+      background-color: #C0C0C0;
+      color: #000;
+      text-align: center;
+      line-height: 14px;
+      font-weight: bold;
+      cursor: default;
+      border: 1px solid #FFF;
+      border-top: none;
+      border-left: none;
+      box-shadow: inset 1px 1px #808080;
+      position: relative;
+    }
+    .title-bar .window-controls div:hover::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      top: 20px;
+      left: 0;
+      background-color: #C0C0C0;
+      border: 1px solid #000;
+      padding: 2px 4px;
+      white-space: nowrap;
+      font-size: 10px;
+      pointer-events: none;
+      z-index: 1000;
+    }
+    /* MENU BAR STYLING
+     * Creates the classic Windows 95 menu bar with hover effects
+     * Uses border styling to create the 3D effect
+     */
+    .menu-bar {
+      display: flex;
+      gap: 10px;
+      padding: 3px 5px;
+      background-color: #C0C0C0;
+      border-top: 1px solid #FFF;
+      border-left: 1px solid #FFF;
+      border-right: 1px solid #808080;
+      border-bottom: 1px solid #808080;
+      font-size: 12px;
+    }
+    .menu-bar span {
+      cursor: default;
+    }
+    .menu-bar span:hover {
+      background-color: #000080;
+      color: #FFF;
+      padding: 0 2px;
+    }
+    
+    /* PAINT BODY */
+    .paint-body {
+      display: flex;
+    }
+
+    /* TOOLBAR STYLING
+     * Creates the left-side toolbar with drawing tools
+     * Uses flexbox for tool arrangement and hover effects
+     */
+    .toolbar {
+      width: 60px;
+      background-color: #C0C0C0;
+      padding: 4px;
+      border-right: 2px solid #808080;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-content: flex-start;
+    }
+
+    .tool {
+      width: 24px;
+      height: 24px;
+      border: 2px solid #FFF;
+      background-color: #C0C0C0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: inset 1px 1px #808080;
+      font-size: 16px;
+      text-decoration: none;
+      color: #000;
+      position: relative;
+    }
+    .tool:hover {
+      background-color: #FFF;
+    }
+    .tool.active {
+      background-color: #FFF;
+      box-shadow: inset 2px 2px #808080;
+    }
+    
+    /* MAIN CANVAS AREA */
+    .canvas-area {
+      flex-grow: 1;
+      background-color: #FFF;
+      position: relative;
+      padding: 20px;
+      /* A subtle border or inset to mimic old paint window */
+      box-shadow: inset 0 0 0 1px #808080;
+    }
+
+    #drawing-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      cursor: crosshair;
+    }
+
+    .canvas-text {
+      font-size: 14px;
+      color: #000;
+      line-height: 1.5;
+      width: 80%;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+    .canvas-text h1 {
+      margin-bottom: 10px;
+      font-size: 20px;
+    }
+
+    /* COLOR PALETTE STYLING
+     * Creates the color selection area at the bottom
+     * Uses flexbox for color swatch arrangement
+     */
+    .color-palette {
+      display: flex;
+      gap: 2px;
+      padding: 4px;
+      background-color: #C0C0C0;
+      border-top: 2px solid #808080;
+      height: 40px;
+      align-items: center;
+      justify-content: center;
+    }
+    .color-swatch {
+      width: 16px;
+      height: 16px;
+      border: 1px solid #000;
+      cursor: pointer;
+    }
+    .color-swatch.selected {
+      border: 2px solid #000;
+      box-shadow: 0 0 0 1px #FFF;
+    }
+
+    /* BRUSH SIZE SELECTOR STYLING
+     * Creates the brush size selection area
+     * Includes both circle and square brush options
+     */
+    .brush-size-selector {
+      display: flex;
+      gap: 8px;
+      padding: 4px;
+      background-color: #C0C0C0;
+      border-top: 2px solid #808080;
+      height: 40px;
+      align-items: center;
+      justify-content: center;
+    }
+    .brush-option {
+      border: 1px solid #000;
+      background-color: transparent;
+      cursor: pointer;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .brush-option::before {
+      content: '';
+      background-color: #000;
+      position: absolute;
+    }
+    .brush-option.circle::before {
+      border-radius: 50%;
+    }
+    .brush-option.selected {
+      border: 2px solid #000;
+      box-shadow: 0 0 0 1px #FFF;
+      background-color: #000;
+    }
+    .brush-option.selected::before {
+      background-color: #FFF;
+    }
+
+    /* Small brushes */
+    .brush-option[data-size="2"] {
+      width: 16px;
+      height: 16px;
+    }
+    .brush-option[data-size="2"]::before {
+      width: 4px;
+      height: 4px;
+    }
+    .brush-option[data-size="2"].selected::before {
+      width: 8px;
+      height: 8px;
+    }
+
+    /* Medium brushes */
+    .brush-option[data-size="4"] {
+      width: 20px;
+      height: 20px;
+    }
+    .brush-option[data-size="4"]::before {
+      width: 8px;
+      height: 8px;
+    }
+    .brush-option[data-size="4"].selected::before {
+      width: 12px;
+      height: 12px;
+    }
+
+    /* Large brushes */
+    .brush-option[data-size="8"] {
+      width: 24px;
+      height: 24px;
+    }
+    .brush-option[data-size="8"]::before {
+      width: 12px;
+      height: 12px;
+    }
+    .brush-option[data-size="8"].selected::before {
+      width: 16px;
+      height: 16px;
+    }
+
+    .brush-option:hover::after {
+      content: attr(data-label);
+      position: absolute;
+      top: 28px;
+      left: 0;
+      background-color: #C0C0C0;
+      border: 1px solid #000;
+      padding: 2px 4px;
+      white-space: nowrap;
+      font-size: 10px;
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    /* WINDOWS 95-STYLE DEPRESS EFFECT ON CLICK */
+    .tool:active,
+    .color-swatch:active {
+      box-shadow: inset 2px 2px #808080;
+    }
+
+    /* A small tooltip-like label on hover (optional) */
+    .tool:hover::after {
+      content: attr(data-label);
+      position: absolute;
+      top: 28px;
+      left: 0;
+      background-color: #C0C0C0;
+      border: 1px solid #000;
+      padding: 2px 4px;
+      white-space: nowrap;
+      font-size: 10px;
+      pointer-events: none;
+      z-index: 1000;
+    }
+  </style>
+</head>
+<body>
+  <!-- MAIN WINDOW STRUCTURE -->
+  <div class="paint-window">
+    <!-- TITLE BAR WITH WINDOW CONTROLS -->
+    <div class="title-bar">
+      <div class="title">untitled - Paint</div>
+      <div class="window-controls">
+        <div data-tooltip="Minimize">-</div>
+        <div data-tooltip="Maximize">[]</div>
+        <div data-tooltip="Clear Canvas">X</div>
+      </div>
+    </div>
+    
+    <!-- MENU BAR WITH OPTIONS -->
+    <div class="menu-bar">
+      <span>File</span>
+      <span>Edit</span>
+      <span>View</span>
+      <span>Image</span>
+      <span>Options</span>
+      <span>Help</span>
+    </div>
+
+    <!-- MAIN CONTENT AREA -->
+    <div class="paint-body">
+      <!-- TOOLBAR WITH DRAWING TOOLS -->
+      <div class="toolbar">
+        <a href="#" class="tool active" data-label="Pencil Tool" data-tool="pencil">✏️</a>
+        <a href="#" class="tool" data-label="Eraser" data-tool="eraser">🩹</a>
+        <a href="#" class="tool" data-label="Fill Tool" data-tool="fill">🪣</a>
+        <a href="#" class="tool" data-label="Airbrush" data-tool="airbrush">💨</a>
+        <a href="#" class="tool" data-label="Text Tool" data-tool="text">A</a>
+        <a href="#" class="tool" data-label="Line Tool" data-tool="line">—</a>
+        <a href="#" class="tool" data-label="Rectangle" data-tool="rectangle">▭</a>
+        <a href="#" class="tool" data-label="Ellipse" data-tool="ellipse">⬭</a>
+        <a href="#" class="tool" data-label="Rounded Rect" data-tool="rounded">◩</a>
+        <a href="#" class="tool" data-label="Color Picker" data-tool="picker">🌈</a>
+      </div>
+
+      <!-- CANVAS AREA WITH WELCOME TEXT -->
+      <div class="canvas-area">
+        <canvas id="drawing-canvas"></canvas>
+        <div class="canvas-text">
+          <h1>Welcome to My Retro Portfolio</h1>
+          <p>
+            Drawing inspiration from the classic Windows Paint tool, each "icon" in the
+            left-hand toolbar links to one of my projects. Feel free to
+            explore and have a blast from the past!
+          </p>
+          <p>
+            Hover over each tool to see a tooltip describing the project.
+            Click the tool to navigate to the project page or external link.
+          </p>
+          <p>
+            The menu items at the top are purely decorative, but you could repurpose them 
+            for additional pages or links if you'd like!
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- COLOR PALETTE WITH SWATCHES -->
+    <div class="color-palette">
+      <div class="color-swatch selected" style="background-color: #000000" data-color="#000000"></div>
+      <div class="color-swatch" style="background-color: #7F7F7F" data-color="#7F7F7F"></div>
+      <div class="color-swatch" style="background-color: #FFFFFF" data-color="#FFFFFF"></div>
+      <div class="color-swatch" style="background-color: #FF0000" data-color="#FF0000"></div>
+      <div class="color-swatch" style="background-color: #FFFF00" data-color="#FFFF00"></div>
+      <div class="color-swatch" style="background-color: #00FF00" data-color="#00FF00"></div>
+      <div class="color-swatch" style="background-color: #00FFFF" data-color="#00FFFF"></div>
+      <div class="color-swatch" style="background-color: #0000FF" data-color="#0000FF"></div>
+      <div class="color-swatch" style="background-color: #FF00FF" data-color="#FF00FF"></div>
+      <div class="color-swatch" style="background-color: #800000" data-color="#800000"></div>
+      <div class="color-swatch" style="background-color: #808000" data-color="#808000"></div>
+      <div class="color-swatch" style="background-color: #008000" data-color="#008000"></div>
+      <div class="color-swatch" style="background-color: #008080" data-color="#008080"></div>
+      <div class="color-swatch" style="background-color: #000080" data-color="#000080"></div>
+      <div class="color-swatch" style="background-color: #800080" data-color="#800080"></div>
+    </div>
+
+    <!-- BRUSH SIZE SELECTOR WITH OPTIONS -->
+    <div class="brush-size-selector">
+      <div class="brush-option circle selected" data-size="2" data-label="Small Circle Brush"></div>
+      <div class="brush-option circle" data-size="4" data-label="Medium Circle Brush"></div>
+      <div class="brush-option circle" data-size="8" data-label="Large Circle Brush"></div>
+      <div class="brush-option" data-size="2" data-label="Small Square Brush"></div>
+      <div class="brush-option" data-size="4" data-label="Medium Square Brush"></div>
+      <div class="brush-option" data-size="8" data-label="Large Square Brush"></div>
+    </div>
+  </div>
+
+  <script>
+    /* CANVAS INITIALIZATION
+     * Sets up the canvas context and handles window resizing
+     */
+    const canvas = document.getElementById('drawing-canvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Resize canvas to match container size
+    function resizeCanvas() {
+      const container = canvas.parentElement;
+      canvas.width = container.clientWidth;
+      canvas.height = container.clientHeight;
+    }
+    
+    // Initial resize and window resize handler
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    /* DRAWING STATE MANAGEMENT
+     * Tracks current drawing state, color, and tool selection
+     */
+    let isDrawing = false;
+    let currentColor = '#000000';
+    let lastX = 0;
+    let lastY = 0;
+    let currentTool = 'pencil';
+
+    /* BRUSH SIZE MANAGEMENT
+     * Handles brush size and shape selection
+     */
+    const brushOptions = document.querySelectorAll('.brush-option');
+    let currentBrushSize = 2;
+    let currentBrushShape = 'round';
+
+    // Brush option click handlers
+    brushOptions.forEach(option => {
+      option.addEventListener('click', () => {
+        brushOptions.forEach(o => o.classList.remove('selected'));
+        option.classList.add('selected');
+        currentBrushSize = parseInt(option.dataset.size);
+        currentBrushShape = option.classList.contains('circle') ? 'round' : 'square';
+        ctx.lineCap = currentBrushShape;
+        ctx.lineWidth = currentBrushSize;
+      });
+    });
+
+    /* CANVAS CLEARING FUNCTION
+     * Clears the entire canvas area
+     */
+    function clearCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    /* DRAWING FUNCTIONS
+     * Handles mouse events for drawing operations
+     */
+    function startDrawing(e) {
+      isDrawing = true;
+      [lastX, lastY] = [e.offsetX, e.offsetY];
+      
+      if (currentTool === 'eraser') {
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY);
+      }
+    }
+
+    function draw(e) {
+      if (!isDrawing) return;
+      
+      if (currentTool === 'pencil') {
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY);
+        ctx.lineTo(e.offsetX, e.offsetY);
+        ctx.strokeStyle = currentColor;
+        ctx.lineWidth = currentBrushSize;
+        ctx.lineCap = currentBrushShape;
+        ctx.stroke();
+      } else if (currentTool === 'eraser') {
+        ctx.lineTo(e.offsetX, e.offsetY);
+        ctx.strokeStyle = '#FFFFFF';
+        ctx.lineWidth = currentBrushSize * 2;
+        ctx.lineCap = currentBrushShape;
+        ctx.stroke();
+      }
+      
+      [lastX, lastY] = [e.offsetX, e.offsetY];
+    }
+
+    function stopDrawing() {
+      isDrawing = false;
+    }
+
+    /* EVENT LISTENERS
+     * Sets up mouse event handlers for drawing
+     */
+    canvas.addEventListener('mousedown', startDrawing);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', stopDrawing);
+    canvas.addEventListener('mouseout', stopDrawing);
+
+    /* TOOL SELECTION HANDLERS
+     * Manages tool selection and tool-specific behaviors
+     */
+    const tools = document.querySelectorAll('.tool[data-tool]');
+    tools.forEach(tool => {
+      tool.addEventListener('click', (e) => {
+        e.preventDefault();
+        tools.forEach(t => t.classList.remove('active'));
+        tool.classList.add('active');
+        currentTool = tool.dataset.tool;
+        
+        if (currentTool === 'clear') {
+          clearCanvas();
+          currentTool = 'pencil';
+          tools[0].classList.add('active');
+          tool.classList.remove('active');
+        }
+      });
+    });
+
+    /* COLOR PALETTE HANDLERS
+     * Manages color selection from the palette
+     */
+    const colorSwatches = document.querySelectorAll('.color-swatch');
+    colorSwatches.forEach(swatch => {
+      swatch.addEventListener('click', () => {
+        colorSwatches.forEach(s => s.classList.remove('selected'));
+        swatch.classList.add('selected');
+        currentColor = swatch.dataset.color;
+      });
+    });
+
+    /* WINDOW CONTROLS HANDLERS
+     * Manages window control button behaviors
+     */
+    const windowControls = document.querySelectorAll('.window-controls div');
+    windowControls.forEach(control => {
+      control.addEventListener('click', () => {
+        if (control.textContent === 'X') {
+          clearCanvas();
+        }
+      });
+    });
+  </script>
+</body>
+</html> 
